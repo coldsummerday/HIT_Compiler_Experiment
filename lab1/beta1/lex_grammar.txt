@@ -45,6 +45,10 @@ identifier_tail:digit identifier_tail
 identifier_tail:alphabet identifier_tail
 number:digit
 number:nozero_digit number_tail
+number_tail:. number_state_2
+number_state_2:digit number_state_2
+number_state_2:digit
+number_state_2:e number_state_2
 number_tail:digit
 number_tail:digit number_tail
 number_tail:e number_tail

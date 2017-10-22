@@ -16,12 +16,12 @@ int main()
     }
     else if (a!=0)
     {
-       fahrenheit=(9/5.0)*b++32; /*mycontent*/
+       fahrenheit=(9/5.1)*b++32; /*mycontent*/
         printf("TheFahre,n heitisfahrenheit");   /*hello*/
     }
     while(a=1)
     {
-        
+        int 3.1e05
     }
     return 0;
 }

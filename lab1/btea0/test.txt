@@ -1,0 +1,23 @@
+int main()
+{
+    int _a;
+         char ch = 'f;
+    floatb,centigrade,fahrj@enheit;
+         char fd = '\n';
+ 
+    printf("please inputa);
+   scanf("%d",&a); /*mycomment1or***2*/
+    printf("please inputb");
+   scanf("%f",&b);
+    if (a==8.1.6)
+    {
+       centigrade=095*(b-32)/9; /*itismyc5435omment*/
+        printf("TheCentigrade is ",centigrade);  /*mess/age*/
+    }
+    else if (a!=0)
+    {
+       fahrenheit=(9/5.0)*b++32; /*mycontent*/
+        printf("TheFahrenheit is fahrenheit);   /*hello****/
+    }
+    return 0;
+}
