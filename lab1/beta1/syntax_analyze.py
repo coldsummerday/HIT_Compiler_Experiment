@@ -24,10 +24,10 @@ class LexicalAnalyze(object):
             cur_left = line[:index]
             cur_right = line[index+1:]
             line_num += 1
-            if line_num < 4:
+            if line_num < 5:
                 self.tool_set[cur_left] = set(cur_right.split('|'))
                 continue
-            elif line_num == 4:
+            elif line_num == 5:
                 for word in set(cur_right.split('|')):
                     self.key_words[word] = cur_left
                 continue

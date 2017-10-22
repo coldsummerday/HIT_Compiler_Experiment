@@ -21,7 +21,7 @@ identifier fd
 EQ =
 identifier printf
 LB (
-string "pleaseinputa"
+string "please  inputa"
 RB )
 limiter ;
 scanf scanf
@@ -65,7 +65,7 @@ number 32
 RB )
 number 9
 limiter ;
-comment /*itismyc5435omment*/
+comment /*itismyc543*5omment*/
 identifier printf
 LB (
 string "TheCentigradeis"
@@ -92,7 +92,7 @@ operator /
 number 5
 identifier printf
 LB (
-string "TheFahre,nheitisfahrenheit"
+string "TheFahre,n heitisfahrenheit"
 RB )
 limiter ;
 comment /*hello*/

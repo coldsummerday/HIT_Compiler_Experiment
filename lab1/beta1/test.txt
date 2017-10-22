@@ -5,19 +5,19 @@ int main()
     floatb,centigrade,fahrj@enheit;
          char fd = '\n';
  
-    printf("pleaseinputa");
+    printf("please  inputa");
    scanf("%d",&a); /*mycomment1o2*/
     printf("pleaseinputb");
    scanf("%f",&b);
     if (a==8.1.6)
     {
-       centigrade=095*(b-32)9;   /*itismyc5435omment*/
+       centigrade=095*(b-32)9;   /*itismyc543*5omment*/
         printf("TheCentigradeis",centigrade);     /*message*/
     }
     else if (a!=0)
     {
        fahrenheit=(9/5.0)*b++32; /*mycontent*/
-        printf("TheFahre,nheitisfahrenheit");   /*hello*/
+        printf("TheFahre,n heitisfahrenheit");   /*hello*/
     }
     while(a=1)
     {
