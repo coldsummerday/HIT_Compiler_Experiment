@@ -41,7 +41,6 @@ class LexicalAnalyze(object):
                 production['input'] = cur_right
                 production['right'] = None
             self.productions.append(production)
-
     def create_nfa(self):
         all_status = {}
         def get_create_nfa_node(name,_type):
@@ -114,7 +113,6 @@ class LexicalAnalyze(object):
                 node_name = queue.pop(0)
                 top_node_name = node_name[0]
                 dfa_node_name = node_name[1]
-                # print 'to =', top_node_name, ', df =', dfa_node_name
                 dfa_node = get_create_dfaNode(dfa_node_name, 0)
                 for alpha in self.NFA.alphabets:
                     target_set = set()
@@ -166,7 +164,7 @@ class LexicalAnalyze(object):
     def read_and_analyze(self,filename):
         line_num  = 0
         lex_error = False
-        for line in open(filename+'.temp','r'):
+        for line in open(filename,'r'):
             pos = 0
             line_num += 1
             line = line.split('\n')[0]
@@ -194,77 +192,10 @@ class LexicalAnalyze(object):
             output.close()
             return True
         return False
-
-    def clear_comment(self,file_name):
-        with open(file_name,'r') as file_handle:
-            content = file_handle.read()
-        state = 0
-        tempindex = -1
-        StringState = 0
-        for char in content:
-            tempindex += 1
-            if state == 0:
-                if char=='/':
-                    state = 1
-                    startIndex = tempindex
-            elif state==1:
-                if char == '*':
-                    state = 2
-                else:
-                    state = 0
-            elif state ==2:
-                if char=='*':
-                    state = 3
-                else:
-                    pass
-            elif state==3:
-                if char=='/':
-                    endindex = tempindex +1
-                    comment = content[startIndex:endindex]
-                    self.token_table.append(('COMMENT',comment))
-                    content = content.replace(comment,'')
-                    tempindex = startIndex -1
-                    state = 0
-                elif  char =='*':
-                    pass
-                else:
-                    state = 2
-        tempindex = -1
-        for char in content:
-            tempindex += 1
-            if StringState == 0:
-                if char == '\"':
-                    startStringIndex = tempindex
-                    StringState = 1
-            elif StringState == 1:
-                if char == '\"':
-                    endStringIndex = tempindex + 1
-                    Strings = content[startStringIndex:endStringIndex]
-                    content = content.replace(Strings,'')
-                    self.token_table.append(('STRING',Strings))
-                    tempindex = startStringIndex -1
-                    StringState = 0
-                    
-                
-        
-        with open(file_name+'.temp','w') as file_handle:
-            file_handle.write(content)
-        
                 
 if __name__=="__main__":
     lex_ana = LexicalAnalyze()
     lex_ana.read_lex_grammar('lex_grammar.txt')
     lex_ana.create_nfa()
     lex_ana.nfa_to_dfa()
-    lex_ana.clear_comment('test.txt')
     lex_ana.read_and_analyze('test.txt')
-    '''
-    for key in lex_ana.DFA.status:
-        node = lex_ana.DFA.status[key]
-        print(key)
-        for childkey in node.edge.keys():
-            a=1
-            #print(childkey,node.edge[childkey])
-            '''
-
-            

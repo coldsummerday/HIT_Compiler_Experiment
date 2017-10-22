@@ -7,6 +7,7 @@ start:$ limiter
 start:$ operator
 start:$ string
 start:$ number
+start:$ comment
 limiter:,
 limiter:;
 limiter:[
@@ -17,20 +18,19 @@ limiter:{
 limiter:}
 operator:+
 operator:-
-operator:*
-operator:/
 operator:!
 operator:%
 operator:^
 operator:&
 operator:=
 operator:~
-operator:"
 operator:<<
 operator:>>
 operator:++
 operator:--
 operator:>
+operator:/
+operator:*
 operator:<
 identifier:_
 identifier:alphabet
@@ -48,6 +48,7 @@ number_tail:digit
 number_tail:digit number_tail
 number_tail:e number_tail
 string:" string_tail
+string_tail:  string_tail
 string_tail:, string_tail
 string_tail:; string_tail
 string_tail:[ string_tail
@@ -67,8 +68,6 @@ string_tail:^ string_tail
 string_tail:& string_tail
 string_tail:= string_tail
 string_tail:~ string_tail
-string_tail:" string_tail
-string_tail:" string_tail
 string_tail:< string_tail
 string_tail:> string_tail
 string_tail:_ string_tail
@@ -76,3 +75,11 @@ string_tail:# string_tail
 string_tail:digit string_tail
 string_tail:alphabet string_tail
 string_tail:"
+
+comment:/ comment_sencond
+comment_sencond:* comment_else
+comment_else:alphabet comment_else
+comment_else:  comment_else
+comment_else:digit comment_else
+comment_else:* comment_tail
+comment_tail:/
