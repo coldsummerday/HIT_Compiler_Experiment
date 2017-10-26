@@ -179,14 +179,14 @@ class LexicalAnalyze(object):
                         break
                     else:
                         if token in self.limiters:
-                            token_type = self.limiters[token]
+                            token_type = token
                         self.token_table.append((token_type,token))
                     pos += 1
         if not lex_error:
             output = open('token_table.txt','w+')
             for token_type,token in self.token_table:
                 type_of_token = token_type
-                if token_type =='limiter':
+                if token_type =='limiter' or token_type =='operator':
                     type_of_token = token
                 output.write('%s %s\n' % (type_of_token, token))
             output.close()
