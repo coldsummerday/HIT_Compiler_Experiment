@@ -14,7 +14,7 @@ class SyntaxAnalyze(object):
         self.productions_dict = {}
         self.lr_analyze_table = {}
         self.syntree = []
-        
+        self.lex_table = ['identifier','number']
 
     def read_syntax_grammar(self, file_name):
         for line in open(file_name, 'r'):
@@ -177,7 +177,7 @@ class SyntaxAnalyze(object):
 
     def run_on_lr_dfa(self, tokens):
         status_stack = [0]
-        symbol_stack = ['#']
+        symbol_stack = [{'id':'#','token':None}]
         top = 0
         success = False
         tokens.reverse()
@@ -188,12 +188,12 @@ class SyntaxAnalyze(object):
             #print 'token =', tokens[-1]
             # print symbol_stack
             #print symbol_stack
-            if tokens[-1] in self.lr_analyze_table[top]:
-                action = self.lr_analyze_table[top][tokens[-1]]
+            if tokens[-1]['id'] in self.lr_analyze_table[top]:
+                action = self.lr_analyze_table[top][tokens[-1]['id']]
                 if action[0] == 's':
                     status_stack.append(action[1])
-                    symbol_stack.append(tokens[-1])
-                    syn_nodeStack.append(syntree_Node(tokens[-1]))
+                    symbol_stack.append(tokens[-1]['id'])
+                    syn_nodeStack.append(syntree_Node(tokens[-1]['id'],tokens[-1]['token']))
                     tokens = tokens[:-1]
                 elif action[0] == 'r':
                     if action[1] == 0:
@@ -203,7 +203,7 @@ class SyntaxAnalyze(object):
                     production = self.productions[action[1]]
                     left = production.keys()[0]
                     right_len = len(production[left])
-                    tokens.append(left)
+                    tokens.append({'id':left,'token':None})
                     if production[left] == ['$']:
                         continue
                     for node in syn_nodeStack[-right_len:]:
@@ -213,14 +213,14 @@ class SyntaxAnalyze(object):
                     symbol_stack = symbol_stack[:-right_len]
                 else:
                     status_stack.append(action[1])
-                    parentNode = syntree_Node(tokens[-1])
+                    parentNode = syntree_Node(tokens[-1]['id'],tokens[-1]['token'])
                     self.syntree.append(parentNode)
                     while(tempQueue):
                         node = tempQueue.pop(0)
                         self.syntree.append(node)
                         parentNode.addchildNode(node)
                     syn_nodeStack.append(parentNode)
-                    symbol_stack.append(tokens[-1])
+                    symbol_stack.append(tokens[-1]['id'])
                     tokens = tokens[:-1]
                 
             else:
@@ -233,8 +233,13 @@ class SyntaxAnalyze(object):
         tokens = []
         for line in token_table:
             line = line[:-1]
-            tokens.append(line.split(' ')[0])
-        tokens.append('#')
+            element = line.split(' ')
+            symbol =element[1]
+            if element[0] not in self.lex_table:
+                symbol = None
+            token = {'id':element[0],'token':symbol}
+            tokens.append(token)
+        tokens.append({'id':'#','token':None})
         self.run_on_lr_dfa(tokens)
     def printSyn_tree(self):
         root =None
@@ -252,7 +257,10 @@ class SyntaxAnalyze(object):
                 Queue.append(child)
         def printnode(parentnode):
             if not parentnode.flag:
-                print('\t'*parentnode.level+parentnode.name)
+                token = ''
+                if parentnode.token !=None:
+                    token = '-'+parentnode.token
+                print('\t'*parentnode.level+parentnode.name+token)
                 parentnode.flag = True
             while parentnode.children:
                 childNode = parentnode.children.pop(0)

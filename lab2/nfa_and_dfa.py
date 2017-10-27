@@ -65,13 +65,14 @@ class DFA(object):
             if alpha in self.status[cur_status]:
                 return self.status[cur_status][alpha]
 class syntree_Node(object):
-    def __init__(self,name):
+    def __init__(self,name,token = None):
         super(syntree_Node,self).__init__()
         self.name = name
         self.parent = None
         self.children = []
         self.level =None
         self.flag = False
+        self.token = token
     
     def addchildNode(self,childNode):
         if childNode in self.children:
