@@ -266,8 +266,8 @@ class SyntaxAnalyze(object):
             if not parentnode.flag:
                 token = ''
                 if parentnode.token !=None:
-                    token = '-'+parentnode.token
-                print('\t'*parentnode.level+parentnode.name+token)
+                    token = '->'+parentnode.token
+                print(' '*parentnode.level+parentnode.name+token)
                 parentnode.flag = True
             while parentnode.children:
                 childNode = parentnode.children.pop(0)
