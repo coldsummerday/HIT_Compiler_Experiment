@@ -281,9 +281,6 @@ if __name__=="__main__":
     syn.init_first_set()
     syn.create_lr_dfa()
 
-    #for key in syn.DFA.status.keys():
-     #   print(key,syn.DFA.status[key].object_set)
-
     syn.read_and_analyze('token_table.txt')
     syn.printSyn_tree()
     
