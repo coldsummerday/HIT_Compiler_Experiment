@@ -15,6 +15,7 @@ class SyntaxAnalyze(object):
         self.lr_analyze_table = {}
         self.syntree = []
         self.lex_table = ['identifier','number']
+        self.dubeg = True
 
     def read_syntax_grammar(self, file_name):
         for line in open(file_name, 'r'):
@@ -177,7 +178,7 @@ class SyntaxAnalyze(object):
 
     def run_on_lr_dfa(self, tokens):
         status_stack = [0]
-        symbol_stack = [{'id':'#','token':None}]
+        symbol_stack = ['#']
         top = 0
         success = False
         tokens.reverse()
@@ -195,6 +196,8 @@ class SyntaxAnalyze(object):
                     symbol_stack.append(tokens[-1]['id'])
                     syn_nodeStack.append(syntree_Node(tokens[-1]['id'],tokens[-1]['token']))
                     tokens = tokens[:-1]
+                    if self.dubeg:
+                        print(symbol_stack)
                 elif action[0] == 'r':
                     if action[1] == 0:
                         print 'Syntax anaysis successfully!'
@@ -211,6 +214,8 @@ class SyntaxAnalyze(object):
                     syn_nodeStack = syn_nodeStack[:-right_len]
                     status_stack = status_stack[:-right_len]
                     symbol_stack = symbol_stack[:-right_len]
+                    if self.dubeg:
+                        print(symbol_stack)
                 else:
                     status_stack.append(action[1])
                     parentNode = syntree_Node(tokens[-1]['id'],tokens[-1]['token'])
@@ -222,6 +227,8 @@ class SyntaxAnalyze(object):
                     syn_nodeStack.append(parentNode)
                     symbol_stack.append(tokens[-1]['id'])
                     tokens = tokens[:-1]
+                    if self.dubeg:
+                        print(symbol_stack)
                 
             else:
                 print self.lr_analyze_table[top]

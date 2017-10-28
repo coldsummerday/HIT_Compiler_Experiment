@@ -9,4 +9,16 @@ type_specifier:int
 type_specifier:double
 external_declaration:function_definition
 function_definition:type_specifier identifier ( ) compound_statement
-compound_statement:{ identifier }
+compound_statement:{ expression }
+expression:declaration
+declaration_assign:= number
+declaration_assign:$
+declaration_assign:[ number ] array_declaration_assign
+declaration_init:identifier declaration_assign
+declaration:type_specifier declaration_init ;
+array_declaration_assign:= array_declaration
+array_declaration_assign:$
+array_declaration:[ number array_value
+array_value:] array_end
+array_value:, number array_value
+array_end:$
