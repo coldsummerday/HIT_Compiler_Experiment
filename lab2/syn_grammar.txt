@@ -22,11 +22,12 @@ assignment_operator:- =
 assignment_operator:* =
 assignment_operator:/ =
 assignment_operator:% =
-assignment_expression:identifier assignment_operator expression
-assignment_expression_profix:, assignment_expression assignment_expression_profix
-assignment_expression_profix:$
-assignment_expression_list:assignment_expression assignment_expression_profix
-assignment_expression_list:$
+assignment_expression:identifier assignment_init
+assignment_init:assignment_operator assignment_value
+assignment_init:[ number ] assignment_array_value
+assignment_array_value:assignment_operator assignment_value
+assignment_value:expression
+assignment_value:identifier
 function_expression:function identifier ( expression_list )
 expression:constant_expression
 expression:function_expression
@@ -65,7 +66,7 @@ statement:compound_statement
 statement:declaration
 statement_list:statement statement_list
 statement_list:$
-expression_statement:assignment_expression_list ;
+expression_statement:assignment_expression ;
 expression_statement:print ( expression ) ;
 expression_statement:scanf ( identifier ) ;
 jump_statement:continue ;

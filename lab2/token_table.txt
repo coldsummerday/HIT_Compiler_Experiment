@@ -9,7 +9,8 @@ number 10
 , ,
 number 20
 ] ]
-, ,
+; ;
+int int
 identifier b
 = =
 number 234
@@ -74,6 +75,13 @@ identifier main
 ( (
 ) )
 { {
+identifier sum
+[ [
+number 10
+] ]
+= =
+identifier s232
+; ;
 double double
 identifier sum_1_to_50
 = =
