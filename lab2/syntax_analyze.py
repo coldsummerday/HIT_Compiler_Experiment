@@ -194,7 +194,7 @@ class SyntaxAnalyze(object):
                 if action[0] == 's':
                     status_stack.append(action[1])
                     symbol_stack.append(tokens[-1]['id'])
-                    syn_nodeStack.append(syntree_Node(tokens[-1]['id'],tokens[-1]['token']))
+                    syn_nodeStack.append(syntree_Node(tokens[-1]['id'],tokens[-1]['token'],tokens[-1]['line_num']))
                     tokens = tokens[:-1]
                     if self.dubeg:
                         print(symbol_stack)
@@ -206,7 +206,8 @@ class SyntaxAnalyze(object):
                     production = self.productions[action[1]]
                     left = production.keys()[0]
                     right_len = len(production[left])
-                    tokens.append({'id':left,'token':None})
+                    new_line_num = syn_nodeStack[-1].line_num
+                    tokens.append({'id':left,'token':None,'line_num':new_line_num})
                     if production[left] == ['$']:
                         continue
                     for node in syn_nodeStack[-right_len:]:
@@ -218,7 +219,11 @@ class SyntaxAnalyze(object):
                         print(symbol_stack)
                 else:
                     status_stack.append(action[1])
-                    parentNode = syntree_Node(tokens[-1]['id'],tokens[-1]['token'])
+                    if tempQueue:
+                        new_line_num = tempQueue[0].line_num
+                    else:
+                        new_line_num = 0
+                    parentNode = syntree_Node(tokens[-1]['id'],tokens[-1]['token'],new_line_num)
                     self.syntree.append(parentNode)
                     while(tempQueue):
                         node = tempQueue.pop(0)
@@ -231,8 +236,7 @@ class SyntaxAnalyze(object):
                         print(symbol_stack)
                 
             else:
-                print self.lr_analyze_table[top]
-                print 'Syntax error!\n'
+                print ('Syntax error in line:%s!\n' %(str(tokens[-1]['line_num'])))
                 break
 
     def read_and_analyze(self, fileName):
@@ -242,9 +246,10 @@ class SyntaxAnalyze(object):
             line = line[:-1]
             element = line.split(' ')
             symbol =element[1]
+            line_num = element[2]
             if element[0] not in self.lex_table:
                 symbol = None
-            token = {'id':element[0],'token':symbol}
+            token = {'id':element[0],'token':symbol,'line_num':line_num}
             tokens.append(token)
         tokens.append({'id':'#','token':None})
         self.run_on_lr_dfa(tokens)
@@ -276,13 +281,14 @@ class SyntaxAnalyze(object):
         
 if __name__=="__main__":
     syn = SyntaxAnalyze()
+    syn.dubeg = False
     syn.read_syntax_grammar('syn_grammar.txt')
     syn.get_terminate_noterminate()
     syn.init_first_set()
     syn.create_lr_dfa()
 
     syn.read_and_analyze('token_table.txt')
-    syn.printSyn_tree()
+    #syn.printSyn_tree()
     
 
                 
