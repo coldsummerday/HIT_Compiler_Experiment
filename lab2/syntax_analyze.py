@@ -2,6 +2,8 @@
 # -*- coding:utf-8 -*-
 
 from nfa_and_dfa import DFA,LRDFANode,syntree_Node
+from prettytable import PrettyTable
+import csv
 class SyntaxAnalyze(object):
 
     def __init__(self):
@@ -278,7 +280,33 @@ class SyntaxAnalyze(object):
                 childNode = parentnode.children.pop(0)
                 printnode(childNode)
         printnode(root)
-        
+    def printFirst_set(self):
+        table = PrettyTable(['syn','set'])
+        for key in self.first_set.keys():
+            firstset = self.first_set[key]
+            firststr =''
+            for item in firstset:
+                firststr += ' %s' %(item)
+            table.add_row([key,firststr])
+        self.first_set_table = table
+    def save_Lr_anylyze_table(self,filename):
+        col_headers = sorted(list(self.noterminate | self.terminate))
+        col_headers.remove('')
+        csv_handle = open(filename,'w')
+        f_csv = csv.writer(csv_handle)
+        f_csv.writerow(['lr_table']+col_headers)
+        lr_table = self.lr_analyze_table
+        for key in lr_table.keys():
+            templist =[]
+            for item in col_headers:
+                if item in lr_table[key].keys():
+                    templist.append(lr_table[key][item])
+                else:
+                    templist.append(' ')
+            f_csv.writerow([key]+templist)
+        csv_handle.close()
+            
+            
 if __name__=="__main__":
     syn = SyntaxAnalyze()
     syn.dubeg = False
@@ -286,8 +314,11 @@ if __name__=="__main__":
     syn.get_terminate_noterminate()
     syn.init_first_set()
     syn.create_lr_dfa()
-
-    syn.read_and_analyze('token_table.txt')
+    syn.save_Lr_anylyze_table('lr_table.csv')
+    syn.printFirst_set()
+    with open('first.txt','w') as first_handle:
+        first_handle.write(syn.first_set_table.get_string())
+    #syn.read_and_analyze('token_table.txt')
     #syn.printSyn_tree()
     
 

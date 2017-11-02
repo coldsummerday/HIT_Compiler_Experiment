@@ -1,4 +1,5 @@
 int a[10], b = 234 , c = 2e4;
+int ;
 
 function int max(int a,int b){
 	if ( a>b ) return  a;

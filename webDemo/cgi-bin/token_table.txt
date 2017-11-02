@@ -1,183 +1,185 @@
-int int
-identifier a
-[ [
-number 10
-] ]
-, ,
-identifier b
-= =
-number 234
-, ,
-identifier c
-= =
-number 2e4
-; ;
-function function
-int int
-identifier max
-( (
-int int
-identifier a
-, ,
-int int
-identifier b
-) )
-{ {
-if if
-( (
-identifier a
-> >
-identifier b
-) )
-return return
-identifier a
-; ;
-else else
-return return
-identifier b
-; ;
-} }
-function function
-double double
-identifier min
-( (
-int int
-identifier A
-, ,
-int int
-identifier B
-) )
-{ {
-if if
-( (
-identifier A
-< <
-identifier B
-) )
-return return
-identifier A
-; ;
-else else
-return return
-identifier B
-; ;
-} }
-function function
-int int
-identifier main
-( (
-) )
-{ {
-identifier a
-[ [
-number 0
-] ]
-= =
-number 5.1
-; ;
-double double
-identifier sum_1_to_50
-= =
-number 1
-; ;
-for for
-( (
-int int
-identifier i
-= =
-number 1
-; ;
-identifier i
-< <
-number 100
-; ;
-identifier i
-+ +
-= =
-number 1
-) )
-{ {
-if if
-( (
-identifier i
-< <
-number 50
-) )
-break break
-; ;
-else else
-identifier sum_1_to_50
-+ +
-= =
-identifier i
-; ;
-} }
-int int
-identifier k
-= =
-number 0
-, ,
-identifier s
-= =
-( (
-( (
-number 534
-- -
-number 23
-) )
-+ +
-number 423
-) )
-* *
-number 23
-; ;
-while while
-( (
-identifier k
-< <
-number 40
-) )
-scanf scanf
-( (
-identifier s
-) )
-; ;
-int int
-identifier A
-= =
-number 50
-, ,
-identifier B
-= =
-number 23
-, ,
-identifier C
-; ;
-identifier C
-= =
-function function
-identifier max
-( (
-identifier A
-, ,
-identifier B
-) )
-; ;
-print print
-( (
-identifier C
-) )
-; ;
-print print
-( (
-identifier A
-+ +
-identifier B
-* *
-identifier C
-) )
-; ;
-return return
-number 0
-; ;
-} }
+int int 1
+identifier a 1
+[ [ 1
+number 10 1
+] ] 1
+, , 1
+identifier b 1
+= = 1
+number 234 1
+, , 1
+identifier c 1
+= = 1
+number 2e4 1
+; ; 1
+int int 2
+; ; 2
+function function 4
+int int 4
+identifier max 4
+( ( 4
+int int 4
+identifier a 4
+, , 4
+int int 4
+identifier b 4
+) ) 4
+{ { 4
+if if 5
+( ( 5
+identifier a 5
+> > 5
+identifier b 5
+) ) 5
+return return 5
+identifier a 5
+; ; 5
+else else 6
+return return 6
+identifier b 6
+; ; 6
+} } 7
+function function 8
+double double 8
+identifier min 8
+( ( 8
+int int 8
+identifier A 8
+, , 8
+int int 8
+identifier B 8
+) ) 8
+{ { 8
+if if 9
+( ( 9
+identifier A 9
+< < 9
+identifier B 9
+) ) 9
+return return 9
+identifier A 9
+; ; 9
+else else 10
+return return 10
+identifier B 10
+; ; 10
+} } 11
+function function 13
+int int 13
+identifier main 13
+( ( 13
+) ) 13
+{ { 13
+identifier a 14
+[ [ 14
+number 0 14
+] ] 14
+= = 14
+number 5.1 14
+; ; 14
+double double 15
+identifier sum_1_to_50 15
+= = 15
+number 1 15
+; ; 15
+for for 16
+( ( 16
+int int 16
+identifier i 16
+= = 16
+number 1 16
+; ; 16
+identifier i 16
+< < 16
+number 100 16
+; ; 16
+identifier i 16
++ + 16
+= = 16
+number 1 16
+) ) 16
+{ { 16
+if if 17
+( ( 17
+identifier i 17
+< < 17
+number 50 17
+) ) 17
+break break 17
+; ; 17
+else else 18
+identifier sum_1_to_50 18
++ + 18
+= = 18
+identifier i 18
+; ; 18
+} } 19
+int int 20
+identifier k 20
+= = 20
+number 0 20
+, , 20
+identifier s 20
+= = 20
+( ( 20
+( ( 20
+number 534 20
+- - 20
+number 23 20
+) ) 20
++ + 20
+number 423 20
+) ) 20
+* * 20
+number 23 20
+; ; 20
+while while 21
+( ( 21
+identifier k 21
+< < 21
+number 40 21
+) ) 21
+scanf scanf 21
+( ( 21
+identifier s 21
+) ) 21
+; ; 21
+int int 23
+identifier A 23
+= = 23
+number 50 23
+, , 23
+identifier B 23
+= = 23
+number 23 23
+, , 23
+identifier C 23
+; ; 23
+identifier C 24
+= = 24
+function function 24
+identifier max 24
+( ( 24
+identifier A 24
+, , 24
+identifier B 24
+) ) 24
+; ; 24
+print print 25
+( ( 25
+identifier C 25
+) ) 25
+; ; 25
+print print 26
+( ( 26
+identifier A 26
++ + 26
+identifier B 26
+* * 26
+identifier C 26
+) ) 26
+; ; 26
+return return 27
+number 0 27
+; ; 27
+} } 28

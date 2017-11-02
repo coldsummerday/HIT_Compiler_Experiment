@@ -182,21 +182,22 @@ class LexicalAnalyze(object):
                 if pos < len(line):
                     pos, token_type, token = self.run_on_dfa(line, pos)
                     if token_type is None:
-                        print('Lexical error at line %s, column %s' % (
-                            (str(line_num), str(pos))))
+                        print 'Lexical error at line %s, column %s' % (
+                            (str(line_num), str(pos)))
                         break
                     else:
-                        token_table.append((token_type, token))
+                        token_table.append((token_type, token,line_num))
+
                     pos += 1
         if not lex_error:
             output = open('token_table.txt', 'w+')
-            for token_type, token in token_table:
+            for token_type, token,line_num in token_table:
                 type_of_token = token
                 if token_type == 'identifier' or token_type == 'number':
                     type_of_token = token_type
-                output.write('%s %s\n' % (type_of_token, token))
+                output.write('%s %s %d\n' % (type_of_token, token,line_num))
                 if self.debug:
-                    print('(\'%s\'\t, \'%s\')' % (type_of_token, token))
+                    print '(\'%s\'\t, \'%s\'\t,%d)' % (token_type, token,line_num)
             output.close()
             return True
         return False
@@ -207,7 +208,6 @@ def main():
     lex_ana.read_lex_grammar('lex_grammar.txt')
     lex_ana.create_nfa()
     lex_ana.nfa_to_dfa()
-
     lex_ana.read_and_analyze('test.txt')
 
 if __name__ == '__main__':
