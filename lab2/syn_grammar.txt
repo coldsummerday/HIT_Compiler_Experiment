@@ -31,6 +31,7 @@ assignment_value:identifier
 function_expression:function identifier ( expression_list )
 expression:constant_expression
 expression:function_expression
+expression:string
 expression_profix:, expression expression_profix
 expression_profix:$
 expression_list:expression expression_profix

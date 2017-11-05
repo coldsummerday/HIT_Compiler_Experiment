@@ -193,7 +193,7 @@ class LexicalAnalyze(object):
             output = open('token_table.txt', 'w+')
             for token_type, token,line_num in token_table:
                 type_of_token = token
-                if token_type == 'identifier' or token_type == 'number':
+                if token_type == 'identifier' or token_type == 'number' or token_type=='string':
                     type_of_token = token_type
                 output.write('%s %s %d\n' % (type_of_token, token,line_num))
                 if self.debug:

@@ -37,8 +37,9 @@
 |              >              |                                        >                                       |
 |           function          |                                    function                                    |
 |            return           |                                     return                                     |
-|       declaration_init      |                                   identifier                                   |
+|            string           |                                     string                                     |
 |    assignment_array_value   |                                   % - + * = /                                  |
+|       declaration_init      |                                   identifier                                   |
 | function_declaration_suffix |                                       , $                                      |
 |  function_declaration_list  |                                char int $ double                               |
 |            start1           |                           function char int $ double                           |
@@ -48,7 +49,7 @@
 |      primary_expression     |                               ( identifier number                              |
 |       assignment_init       |                                  % - + * = [ /                                 |
 |    arithmetic_expression    |                       number % $ ( + * - / identifier < >                      |
-|       assignment_value      |                          function ( identifier number                          |
+|       assignment_value      |                       function string ( identifier number                      |
 |              [              |                                        [                                       |
 |              ]              |                                        ]                                       |
 |    declaration_init_list    |                                       , $                                      |
@@ -59,9 +60,9 @@
 |            double           |                                     double                                     |
 |    assignment_expression    |                                   identifier                                   |
 |      array_declaration      |                                        [                                       |
-|          expression         |                          function ( identifier number                          |
+|          expression         |                       function ( identifier number string                      |
 |      declaration_assign     |                                      [ = $                                     |
-|       expression_list       |                         function ( identifier number $                         |
+|       expression_list       |                      function string ( identifier number $                     |
 |            while            |                                      while                                     |
 |           continue          |                                    continue                                    |
 |     assignment_operator     |                                   % = + * - /                                  |
