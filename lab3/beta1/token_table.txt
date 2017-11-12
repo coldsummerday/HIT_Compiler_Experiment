@@ -1,0 +1,5 @@
+int int 1
+identifier a 1
+= = 1
+number 1 1
+; ; 1

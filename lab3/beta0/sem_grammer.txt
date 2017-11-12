@@ -1,0 +1,11 @@
+start1:start
+start:external_declaration start
+start:$
+type:char->parentNode.value='char';
+type:int->parentNode.value='int';
+type:double->parentNode.value='double';
+array_statement:[ number ] array_statement
+array_statement:$
+type_statement:type array_statement
+statement:type_statement identifier ;
+external_declaration:statement

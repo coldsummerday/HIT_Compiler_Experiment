@@ -1,0 +1,7 @@
+start1:start
+start:statement start
+start:$
+type:char
+type:int
+type:double
+statement:type identifier = number ;

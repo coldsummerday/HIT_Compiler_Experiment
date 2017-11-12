@@ -1,0 +1,73 @@
++-----------------------------+--------------------------------------------------------------------------------+
+|             syn             |                                      set                                       |
++-----------------------------+--------------------------------------------------------------------------------+
+|                             |                                                                                |
+|     expression_statement    |                             print scanf identifier                             |
+|     selection_statement     |                                       if                                       |
+|             int             |                                       int                                      |
+|         declaration         |                                 char int double                                |
+|            number           |                                     number                                     |
+|             char            |                                      char                                      |
+|   array_declaration_assign  |                                       = $                                      |
+|           operator          |                                  % + * - < / >                                 |
+|     iteration_statement     |                                    while for                                   |
+|      expression_profix      |                                       , $                                      |
+|              if             |                                       if                                       |
+|     external_declaration    |                            function char int double                            |
+|        type_specifier       |                                 char int double                                |
+|              %              |                                        %                                       |
+|              $              |                                        $                                       |
+|             for             |                                       for                                      |
+|      compound_statement     |                                        {                                       |
+|              )              |                                        )                                       |
+|              (              |                                        (                                       |
+|              +              |                                        +                                       |
+|              *              |                                        *                                       |
+|              -              |                                        -                                       |
+|              ,              |                                        ,                                       |
+|              /              |                                        /                                       |
+|            start            |                           function char int $ double                           |
+|          statement          |   char return for int double scanf break while continue print { identifier if  |
+|         array_value         |                                       ] ,                                      |
+|            print            |                                      print                                     |
+|              ;              |                                        ;                                       |
+|              =              |                                        =                                       |
+|              <              |                                        <                                       |
+|     constant_expression     |                               ( identifier number                              |
+|              >              |                                        >                                       |
+|           function          |                                    function                                    |
+|            return           |                                     return                                     |
+|       declaration_init      |                                   identifier                                   |
+|    assignment_array_value   |                                   % - + * = /                                  |
+| function_declaration_suffix |                                       , $                                      |
+|  function_declaration_list  |                                char int $ double                               |
+|            start1           |                           function char int $ double                           |
+|             else            |                                      else                                      |
+|            break            |                                      break                                     |
+|          array_end          |                                        $                                       |
+|      primary_expression     |                               ( identifier number                              |
+|       assignment_init       |                                  % - + * = [ /                                 |
+|    arithmetic_expression    |                       number % $ ( + * - / identifier < >                      |
+|       assignment_value      |                          function ( identifier number                          |
+|              [              |                                        [                                       |
+|              ]              |                                        ]                                       |
+|    declaration_init_list    |                                       , $                                      |
+|        jump_statement       |                              break continue return                             |
+|     function_definition     |                                    function                                    |
+|     function_declaration    |                                 char int double                                |
+|     function_expression     |                                    function                                    |
+|            double           |                                     double                                     |
+|    assignment_expression    |                                   identifier                                   |
+|      array_declaration      |                                        [                                       |
+|          expression         |                          function ( identifier number                          |
+|      declaration_assign     |                                      [ = $                                     |
+|       expression_list       |                         function ( identifier number $                         |
+|            while            |                                      while                                     |
+|           continue          |                                    continue                                    |
+|     assignment_operator     |                                   % = + * - /                                  |
+|        statement_list       |  break return $ for int double scanf char while continue print { identifier if |
+|              {              |                                        {                                       |
+|          identifier         |                                   identifier                                   |
+|              }              |                                        }                                       |
+|            scanf            |                                      scanf                                     |
++-----------------------------+--------------------------------------------------------------------------------+
