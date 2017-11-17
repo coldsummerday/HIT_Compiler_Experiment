@@ -245,7 +245,7 @@ class SyntaxAnalyze(object):
                     parentNode = syntree_Node(tokens[-1]['id'],tokens[-1]['token'],new_line_num)
                     ##在语法解析的基础上做语义分析,规约生成节点的时候做出相应的语义动作
                     sem_queue = [parentNode] + tempQueue
-                    #self.sem_class.sem_action(sem_queue)
+                    self.sem_class.sem_action(sem_queue)
                     self.syntree.append(parentNode)
                     while(tempQueue):
                         node = tempQueue.pop(0)
@@ -339,6 +339,7 @@ class SemAnalyze(object):
         self.fours = []
         self.order = 0
         self.offset = 0
+        self.symbole_width = {'int':4,'double':8,'char':4}
     def gen(self,order,op,value1,value2,value3):
         newFour = Four(order,op,value1,value2,value3)
         self.fours.append(newFour)
@@ -362,8 +363,9 @@ class SemAnalyze(object):
         for node in nodes[1:]:
             sem_str += '%s ' %node.name
         sem_str=sem_str[:len(sem_str)-1]
-        print(sem_str)
+        #print(sem_str)
         ##声明语句的语义动作
+        
         if sem_str =='type:int':
             parentNode.changeNodeType('int')
             parentNode.changeNodeWidth(4)
@@ -462,7 +464,6 @@ class SemAnalyze(object):
             lastValue = nodes[1].value
             while(nodes[2].arithmetic_list):
                 arithmetic = nodes[2].arithmetic_list.pop(0)
-                print(arithmetic)
                 tempT = TempVariable('T'+str(self.offset),self.offset,max_width)
                 self.symbole_table.append(Symbole(tempT.id,'temp',tempT.width,tempT.offset))
                 self.offset += max_width
@@ -497,13 +498,51 @@ class SemAnalyze(object):
             #改成正确的属性
             parentNode.changeNodeType('variable_assignment')
             return
-        if sem_str == 'assignment:identifier assignment_init ;':
+        if sem_str == 'assignment_left:identifier assignment_array':
+            symbole = self.isSymboleExist(nodes[1].value)
+            if not symbole:
+                print('id:'+nodes[1].value+' not define!')
+                ##变量是否出错
+                return
+            else:
+                parentNode.changeNodeWidth(symbole.width)
+                parentNode.value = nodes[1].value
+                if not nodes[2].typeflag:
+                    parentNode.changeNodeType('identifier')
+                else:
+                    parentNode.changeNodeType('array')
+                    parentNode.dim = nodes[2].dim
+        if sem_str == 'assignment_array:[ number ] assignment_array':
+            parentNode.dim.append(nodes[2].value)
+            parentNode.changeNodeType('array')
+            if  nodes[4].typeflag:
+                parentNode.mergerArrayDimList(nodes[4].dim)
+        if sem_str == 'assignment:assignment_left assignment_init ;':
             symbole=self.isSymboleExist(nodes[1].value)
             if not symbole:
                 print('id:'+nodes[1].value+' not define!')
                 ##变量是否出错
                 return
             else:
+                assignment_id = 1
+                symbole_each_width = 1
+                if symbole.type.find('array')!=-1:
+                    symbole_type = symbole.type.split('(')[0]
+                    symbole_each_width = self.symbole_width[symbole_type]
+                else:
+                    symbole_each_width = symbole.width
+                if nodes[1].type == 'array':
+                    outOfRangeFlag = isArrayOut(symbole.dim,nodes[1].dim)
+                    if not outOfRangeFlag:
+                        print('array %s out of range!' %(symbole.identifier))
+                        return
+                    else:
+                        arrayOffset = 1
+                        for i in nodes[1].dim:
+                            arrayOffset *= int(i)
+                    assignment_id = '%s(%s,%s,%d)' %(symbole.identifier,symbole.offset,arrayOffset,symbole_each_width)
+                else:
+                    assignment_id = symbole.identifier
                 parentNode.value = symbole.identifier
                 parentNode.changeNodeType(symbole.type)
                 parentNode.changeNodeWidth(symbole.width)
@@ -513,23 +552,44 @@ class SemAnalyze(object):
                     tempT = TempVariable('T'+str(self.offset),self.offset,symbole.width)
                     self.symbole_table.append(Symbole(tempT.id,'temp',tempT.width,tempT.offset))
                     self.offset += symbole.width
-                    if symbole.width < arithmetic.width:
+                    if symbole_each_width < arithmetic.width:
                         ##暂时先赋值默认Number只有int 跟 double不考虑
                         self.gen(self.order,'int()',arithmetic.value,'_',tempT.id)
                         self.order += 1
-                        self.gen(self.order,'=',tempT.id,'_',symbole.identifier)
+                        self.gen(self.order,'=',tempT.id,'_',assignment_id)
                         self.order+=1
-                    elif symbole.width > arithmetic.width:
+                    elif symbole_each_width > arithmetic.width:
                         self.gen(self.order,'double()',arithmetic.value,'_',tempT.id)
                         self.order += 1
-                        self.gen(self.order,'=',tempT.id,'_',symbole.identifier)
+                        self.gen(self.order,'=',tempT.id,'_',assignment_id)
                         self.order+=1
                     else:
-                        self.gen(self.order,'=',arithmetic.value,'_',symbole.identifier)
+                        self.gen(self.order,'=',arithmetic.value,'_',assignment_id)
                         self.order += 1
-            
+        
                         
 
+
+
+
+def isArrayOut(identifyDim,nowDim):
+    if len(nowDim)==1:
+        width = 1
+        for i in identifyDim:
+            width *= i
+        if width < int(nowDim[0]):
+            return False
+        else:
+            return True  
+    if len(nowDim) != len(identifyDim):
+        return False
+    elif len(nowDim) == len(identifyDim):
+        for i in range(len(nowDim)):
+            if identifyDim[i] < int(nowDim[i]):
+                return False
+        return True
+    
+        
                         
 
         
@@ -553,7 +613,7 @@ class SemAnalyze(object):
 
 if __name__=="__main__":
     syn = SyntaxAnalyze()
-    syn.dubeg = True
+    syn.dubeg = False
     syn.read_syntax_grammar('sem_grammer.txt')
     syn.get_terminate_noterminate()
     syn.init_first_set()

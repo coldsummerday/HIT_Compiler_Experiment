@@ -155,6 +155,7 @@ class Symbole(object):
         self.dim = []
     def getDepth(self):
         return len(self.dim)
+    
 class arithmetic(object):
     def __init__(self,op,value,width):
         self.op = op

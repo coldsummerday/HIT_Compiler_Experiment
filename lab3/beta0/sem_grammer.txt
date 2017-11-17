@@ -27,9 +27,12 @@ arithmetic_expression:primary_expression arithmetic_expression
 arithmetic_expression:operator primary_expression arithmetic_expression
 arithmetic_expression:$
 constant_expression:primary_expression arithmetic_expression
-assignment:identifier assignment_init ;
+assignment:assignment_left assignment_init ;
+assignment_left:identifier assignment_array
+assignment_array:[ number ] assignment_array
+assignment_array:$
 assignment_init:= assignment_value
 assignment_value:expression
-assignment_value:identifier
+assignment_value:identifier assignment_array
 expression:constant_expression
 external_declaration:statement
