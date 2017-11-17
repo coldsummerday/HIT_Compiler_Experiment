@@ -76,8 +76,25 @@ class syntree_Node(object):
         self.line_num = line_num
         self.typeflag = False
         self.widthflag = False
-    
+        self.arithmetic = False
+        self.arithmetic_list = []
+        self.dim = []
 
+    ##改变保存规约算式表达式的时候缺少一个操作值时候两个值的状态
+    def addArithmetic(self,op,value,width):
+        if self.arithmetic:
+            self.arithmetic_list.append(arithmetic(op,value,width))
+        else:
+            self.typeflag = True
+            self.arithmetic = True
+            self.type = arithmetic
+            self.arithmetic_list = []
+            self.arithmetic_list.append(arithmetic(op,value,width))
+            self.type = 'arithmetic'
+    def mergerArrayDimList(self,dim_list):
+        self.dim.extend(dim_list)
+    def mergeArithmetic(self,arithmetic_list):
+        self.arithmetic_list.extend(arithmetic_list)
     def changeNodeType(self,type):
         self.typeflag =True
         self.type = type
@@ -105,8 +122,9 @@ class syntree_Node(object):
         return nodeStr
 
 class Four(object):
-    def __init__(self,order,value1,value2,value3):
+    def __init__(self,order,op,value1,value2,value3):
         super(Four,self).__init__()
+        self.op = op
         self.order = order
         self.value1 = value1
         self.value2 = value2
@@ -121,10 +139,10 @@ class Four(object):
             four.value3 = jorder
 
     def __str__(self):
-        return '(%d,%s,%s,%s)' %(int(self.order),str(self.value1),str(self.value2),str(self.value3))
+        return '(%d,%s,%s,%s,%s)' %(int(self.order),str(self.op),str(self.value1),str(self.value2),str(self.value3))
 
     def __repr__(self):
-        return '(%d,%s,%s,%s)' %(int(self.order),str(self.value1),str(self.value2),str(self.value3))
+        return '(%d,%s,%s,%s,%s)' %(int(self.order),str(self.op),str(self.value1),str(self.value2),str(self.value3))
     
 
 class Symbole(object):
@@ -133,7 +151,32 @@ class Symbole(object):
         self.type = type
         self.width = width
         self.offset = offset
+        self.arrayflag = False
+        self.dim = []
+    def getDepth(self):
+        return len(self.dim)
+class arithmetic(object):
+    def __init__(self,op,value,width):
+        self.op = op
+        self.value = value
+        self.width = width
+
+    def __str__(self):
+        return '(%s,%s,%s)' %(self.op,str(self.value),str(self.width))
+
+    def __repr__(self):
+        return '(%s,%s,%s)' %(self.op,str(self.value),str(self.width))
     
+
+class TempVariable(object):
+    def __init__(self,id,offset,width):
+        self.id = id 
+        self.offset = offset
+        self.width = width
+    
+    def addValue(self,value):
+        self.value = value
+        
 '''
 class SemanticNode(object):
 '''

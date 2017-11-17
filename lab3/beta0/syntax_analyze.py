@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-from nfa_and_dfa import DFA,LRDFANode,syntree_Node,Symbole,Four
+from nfa_and_dfa import DFA,LRDFANode,syntree_Node,Symbole,Four,TempVariable
 from prettytable import PrettyTable
 import csv
 class SyntaxAnalyze(object):
@@ -23,6 +23,8 @@ class SyntaxAnalyze(object):
 
     def read_syntax_grammar(self, file_name):
         for line in open(file_name, 'r'):
+            if line[0]=='#':
+                continue
             line = line[:-1]
             cur_left = line.split(':')[0]
             cur_right = line.split(':')[1]
@@ -243,7 +245,7 @@ class SyntaxAnalyze(object):
                     parentNode = syntree_Node(tokens[-1]['id'],tokens[-1]['token'],new_line_num)
                     ##在语法解析的基础上做语义分析,规约生成节点的时候做出相应的语义动作
                     sem_queue = [parentNode] + tempQueue
-                    self.sem_class.sem_action(sem_queue)
+                    #self.sem_class.sem_action(sem_queue)
                     self.syntree.append(parentNode)
                     while(tempQueue):
                         node = tempQueue.pop(0)
@@ -313,6 +315,8 @@ class SyntaxAnalyze(object):
             col_headers.remove('')
         csv_handle = open(filename,'w')
         f_csv = csv.writer(csv_handle)
+        pretty_table = PrettyTable(['lr_table']+col_headers)
+        
         f_csv.writerow(['lr_table']+col_headers)
         lr_table = self.lr_analyze_table
         for key in lr_table.keys():
@@ -322,8 +326,11 @@ class SyntaxAnalyze(object):
                     templist.append(lr_table[key][item])
                 else:
                     templist.append(' ')
+            pretty_table.add_row([key]+templist)
             f_csv.writerow([key]+templist)
         csv_handle.close()
+        with open(filename+'.pre','w') as pre_filehandle:
+            pre_filehandle.write(pretty_table.get_string())
 
 
 class SemAnalyze(object):
@@ -332,16 +339,22 @@ class SemAnalyze(object):
         self.fours = []
         self.order = 0
         self.offset = 0
-    def addFour(self,order,value1,value2,value3):
-        newFour = Four(order,value1,value2,value3)
+    def gen(self,order,op,value1,value2,value3):
+        newFour = Four(order,op,value1,value2,value3)
         self.fours.append(newFour)
         return newFour
 
     def printSymbole_table(self):
-        table = PrettyTable(['id','type','width','offset'])
+        table = PrettyTable(['id','type','width','offset','array_dim'])
         for symbole in self.symbole_table:
-            table.add_row([symbole.identifier,symbole.type,symbole.width,str(symbole.offset)])
+            table.add_row([symbole.identifier,symbole.type,symbole.width,str(symbole.offset),str(symbole.dim)])
         print(table)
+    def isSymboleExist(self,identifier):
+        for symbole in self.symbole_table:
+            if symbole.identifier == identifier:
+                return symbole
+        return None
+        
     def sem_action(self,nodes):
         parentNode = nodes[0]
         sem_str = ''
@@ -349,35 +362,189 @@ class SemAnalyze(object):
         for node in nodes[1:]:
             sem_str += '%s ' %node.name
         sem_str=sem_str[:len(sem_str)-1]
-
+        print(sem_str)
         ##声明语句的语义动作
         if sem_str =='type:int':
             parentNode.changeNodeType('int')
             parentNode.changeNodeWidth(4)
+            return
         if sem_str =='type:char':
             parentNode.changeNodeType('char')
             parentNode.changeNodeWidth(1)
+            return
         if sem_str =='type:double':
             parentNode.changeNodeType('double')
             parentNode.changeNodeWidth(8)
+            return
         if sem_str=='array_statement:[ number ] array_statement':
             if nodes[4].typeflag and nodes[4].widthflag:
                 parentNode.changeNodeWidth(int(nodes[2].value) * nodes[4].width)
-                parentNode.changeNodeType('array(%d,%s)' %(int(nodes[2].value),nodes[4].type))
+                parentNode.changeNodeType('array')
+                parentNode.dim.append(int(nodes[2].value))
+                parentNode.mergerArrayDimList(nodes[4].dim)
+                return
             else:
                 parentNode.changeNodeWidth(int(nodes[2].value))
-                parentNode.changeNodeType('array(%d)' %(int(nodes[2].value)))
+                parentNode.changeNodeType('array')
+                parentNode.dim.append(int(nodes[2].value))
+                return
         if sem_str == 'type_statement:type array_statement':
             if nodes[2].typeflag:
                 parentNode.changeNodeType('%s(%s)' %(nodes[1].type,nodes[2].type))
                 parentNode.changeNodeWidth(nodes[2].width * nodes[1].width)
+                parentNode.dim = nodes[2].dim
+                return
             else:
                 parentNode.changeNodeType(nodes[1].type)
                 parentNode.changeNodeWidth(nodes[1].width)
+                return
         if sem_str =='statement:type_statement identifier ;':
             newsymbole = Symbole(nodes[2].value,nodes[1].type,nodes[1].width,self.offset)
+            if len(nodes[1].dim)!=0:
+                newsymbole.dim = nodes[1].dim
             self.symbole_table.append(newsymbole)
             self.offset += nodes[1].width
+            return
+        if sem_str[:9] == 'operator:':
+            parentNode.value = nodes[1].name
+            return
+        if sem_str =='primary_expression:identifier':
+            symbole=self.isSymboleExist(nodes[1].value)
+            if not symbole:
+                print('id:'+nodes[1].value+' not define!')
+                ##变量是否出错
+                return
+            else:
+                parentNode.value = symbole.identifier
+                parentNode.changeNodeType(symbole.type)
+                parentNode.changeNodeWidth(symbole.width)
+                return
+        if sem_str == 'primary_expression:number':
+            if nodes[1].value.find('.') != -1:
+                parentNode.value = float(nodes[1].value)
+                parentNode.changeNodeType('double')
+                parentNode.changeNodeWidth(8)
+            else:
+                parentNode.value = int(nodes[1].value)
+                parentNode.changeNodeType('int')
+                parentNode.changeNodeWidth(4)
+            return
+        if sem_str == 'primary_expression:( expression )':
+            parentNode.value = nodes[2].value
+            parentNode.changeNodeWidth(nodes[2].width)
+            parentNode.changeNodeType(nodes[2].type)
+            return
+        if sem_str=='arithmetic_expression:operator':
+            parentNode.value = nodes[1].value
+            parentNode.changeNodeType('operator')
+            return
+        if sem_str == 'arithmetic_expression:operator primary_expression arithmetic_expression':
+            if nodes[3].typeflag:
+                if nodes[3].type =='arithmetic':
+                    parentNode.addArithmetic(nodes[1].value,nodes[2].value,nodes[2].width)
+                    parentNode.mergeArithmetic(nodes[3].arithmetic_list)
+            else:
+                parentNode.addArithmetic(nodes[1].value,nodes[2].value,nodes[2].width)
+            return
+
+        ##所有算式算子集结完毕,等待生成四元式
+        if sem_str == 'constant_expression:primary_expression arithmetic_expression':
+            if not nodes[2].typeflag:
+                parentNode.changeNodeType('expression')
+                parentNode.value = nodes[1].value
+                parentNode.width = nodes[1].width
+                return
+            parentNode.changeNodeType('expression')
+            node1_width = nodes[1].width
+            for Arithmetic in nodes[2].arithmetic_list:
+                max_width = max(node1_width,Arithmetic.width)
+                #e_str += '%s%s' %(Arithmetic.op,str(Arithmetic.value))
+            lastValue = nodes[1].value
+            while(nodes[2].arithmetic_list):
+                arithmetic = nodes[2].arithmetic_list.pop(0)
+                print(arithmetic)
+                tempT = TempVariable('T'+str(self.offset),self.offset,max_width)
+                self.symbole_table.append(Symbole(tempT.id,'temp',tempT.width,tempT.offset))
+                self.offset += max_width
+                self.gen(self.order,arithmetic.op,lastValue,arithmetic.value,tempT.id)
+                self.order += 1
+                lastValue = tempT.id
+            parentNode.value = lastValue
+            parentNode.changeNodeWidth(max_width)
+            return
+        if sem_str == 'expression:constant_expression':
+            parentNode.changeNodeType('expression')
+            parentNode.value = nodes[1].value
+            parentNode.changeNodeWidth(nodes[1].width)
+        if sem_str=='assignment_value:expression':
+            parentNode.changeNodeType('expression')
+            parentNode.value = nodes[1].value
+            parentNode.changeNodeWidth(nodes[1].width)
+        if sem_str == 'assignment_value:identifier':
+            symbole=self.isSymboleExist(nodes[1].value)
+            if not symbole:
+                print('id:'+nodes[1].value+' not define!')
+                ##变量是否出错
+                return
+            else:
+                parentNode.value = symbole.identifier
+                parentNode.changeNodeType(symbole.type)
+                parentNode.changeNodeWidth(symbole.width)
+                return
+        if sem_str=='assignment_init:= assignment_value':
+            ##addAri方法会改变Node的属性
+            parentNode.addArithmetic('=',nodes[2].value,nodes[2].width)
+            #改成正确的属性
+            parentNode.changeNodeType('variable_assignment')
+            return
+        if sem_str == 'assignment:identifier assignment_init ;':
+            symbole=self.isSymboleExist(nodes[1].value)
+            if not symbole:
+                print('id:'+nodes[1].value+' not define!')
+                ##变量是否出错
+                return
+            else:
+                parentNode.value = symbole.identifier
+                parentNode.changeNodeType(symbole.type)
+                parentNode.changeNodeWidth(symbole.width)
+                if nodes[2].type == 'variable_assignment':
+                ##简单变量赋值
+                    arithmetic = nodes[2].arithmetic_list.pop()
+                    tempT = TempVariable('T'+str(self.offset),self.offset,symbole.width)
+                    self.symbole_table.append(Symbole(tempT.id,'temp',tempT.width,tempT.offset))
+                    self.offset += symbole.width
+                    if symbole.width < arithmetic.width:
+                        ##暂时先赋值默认Number只有int 跟 double不考虑
+                        self.gen(self.order,'int()',arithmetic.value,'_',tempT.id)
+                        self.order += 1
+                        self.gen(self.order,'=',tempT.id,'_',symbole.identifier)
+                        self.order+=1
+                    elif symbole.width > arithmetic.width:
+                        self.gen(self.order,'double()',arithmetic.value,'_',tempT.id)
+                        self.order += 1
+                        self.gen(self.order,'=',tempT.id,'_',symbole.identifier)
+                        self.order+=1
+                    else:
+                        self.gen(self.order,'=',arithmetic.value,'_',symbole.identifier)
+                        self.order += 1
+            
+                        
+
+                        
+
+        
+
+        
+            
+        
+                
+                
+                       
+
+        
+            
+        
+                
         
             
             
@@ -386,13 +553,14 @@ class SemAnalyze(object):
 
 if __name__=="__main__":
     syn = SyntaxAnalyze()
-    syn.dubeg = False
+    syn.dubeg = True
     syn.read_syntax_grammar('sem_grammer.txt')
     syn.get_terminate_noterminate()
     syn.init_first_set()
     syn.create_lr_dfa()
     syn.save_Lr_anylyze_table('lr_table.csv')
     syn.printFirst_set()
+
     #print(syn.first_set_table.get_string())
     #with open('first.txt','w') as first_handle:
         #first_handle.write(syn.first_set_table.get_string())
@@ -400,6 +568,6 @@ if __name__=="__main__":
     syn.sem_class.printSymbole_table()
     #syn.printSyn_tree()
 
-    #print(syn.sem_class.fours)
+    print(syn.sem_class.fours)
 
                 

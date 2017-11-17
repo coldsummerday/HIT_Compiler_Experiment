@@ -1,11 +1,35 @@
 start1:start
 start:external_declaration start
 start:$
-type:char->parentNode.value='char';
-type:int->parentNode.value='int';
-type:double->parentNode.value='double';
+external_declaration:statement
+external_declaration:assignment
+#声明语句
+type:char
+type:int
+type:double
 array_statement:[ number ] array_statement
 array_statement:$
 type_statement:type array_statement
 statement:type_statement identifier ;
+#赋值语句
+primary_expression:identifier
+primary_expression:number
+primary_expression:( expression )
+operator:+
+operator:-
+operator:*
+operator:/
+operator:%
+operator:<
+operator:>
+arithmetic_expression:operator
+arithmetic_expression:primary_expression arithmetic_expression
+arithmetic_expression:operator primary_expression arithmetic_expression
+arithmetic_expression:$
+constant_expression:primary_expression arithmetic_expression
+assignment:identifier assignment_init ;
+assignment_init:= assignment_value
+assignment_value:expression
+assignment_value:identifier
+expression:constant_expression
 external_declaration:statement
