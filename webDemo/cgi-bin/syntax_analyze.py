@@ -21,10 +21,20 @@ class SyntaxAnalyze(object):
 
     def read_syntax_grammar(self, file_name):
         for line in open(file_name, 'r'):
+            if line[0]=='#':
+                continue
             line = line[:-1]
             cur_left = line.split(':')[0]
             cur_right = line.split(':')[1]
             right_list = []
+            action_list = []
+            if cur_right.find('->')!=-1:
+                action_str = cur_right.split('->')[1]
+                action_list = action_str.split(';')
+                action_list.remove('')
+                cur_right = cur_right.split('->')[0]
+                left_line = line.split('->')[0]
+                self.sem_actions.append({left_line:action_list})
             if cur_right.find(' ') != -1:
                 right_list = cur_right.split(' ')
             else:
@@ -272,8 +282,8 @@ class SyntaxAnalyze(object):
         def printnode(parentnode):
             if not parentnode.flag:
                 token = ''
-                if parentnode.token !=None:
-                    token = '->'+parentnode.token
+                if parentnode.value !=None:
+                    token = '->'+parentnode.value
                 print('  '*parentnode.level+parentnode.name+token)
                 parentnode.flag = True
             while parentnode.children:
@@ -291,7 +301,8 @@ class SyntaxAnalyze(object):
         self.first_set_table = table
     def save_Lr_anylyze_table(self,filename):
         col_headers = sorted(list(self.noterminate | self.terminate))
-        col_headers.remove('')
+        if '' in col_headers:
+            col_headers.remove('')
         csv_handle = open(filename,'w')
         f_csv = csv.writer(csv_handle)
         f_csv.writerow(['lr_table']+col_headers)

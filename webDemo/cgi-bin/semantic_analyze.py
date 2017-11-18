@@ -5,10 +5,10 @@ from nfa_and_dfa import *
 from prettytable import PrettyTable
 import csv
 import copy
-class SyntaxAnalyze(object):
+class SyntaxAnalyze_with_sem(object):
 
     def __init__(self):
-        super(SyntaxAnalyze, self).__init__()
+        super(SyntaxAnalyze_with_sem, self).__init__()
         self.first_set = {}
         self.productions = []
         self.all_elem = set()
@@ -18,7 +18,7 @@ class SyntaxAnalyze(object):
         self.lr_analyze_table = {}
         self.syntree = []
         self.lex_table = ['identifier','number']
-        self.dubeg = True
+        self.debug = True
         self.sem_actions = []
         self.sem_class = None
 
@@ -216,7 +216,7 @@ class SyntaxAnalyze(object):
                     symbol_stack.append(tokens[-1]['id'])
                     syn_nodeStack.append(syntree_Node(tokens[-1]['id'],tokens[-1]['token'],tokens[-1]['line_num']))
                     tokens = tokens[:-1]
-                    if self.dubeg:
+                    if self.debug:
                         print(symbol_stack)
                 elif action[0] == 'r':
                     if action[1] == 0:
@@ -235,7 +235,7 @@ class SyntaxAnalyze(object):
                     syn_nodeStack = syn_nodeStack[:-right_len]
                     status_stack = status_stack[:-right_len]
                     symbol_stack = symbol_stack[:-right_len]
-                    if self.dubeg:
+                    if self.debug:
                         print(symbol_stack)
                 else:
                     status_stack.append(action[1])
@@ -247,6 +247,8 @@ class SyntaxAnalyze(object):
                     ##在语法解析的基础上做语义分析,规约生成节点的时候做出相应的语义动作
                     sem_queue = [parentNode] + tempQueue
                     self.sem_class.sem_action(sem_queue)
+                    if self.sem_class.error_flag:
+                        return
                     self.syntree.append(parentNode)
                     while(tempQueue):
                         node = tempQueue.pop(0)
@@ -255,7 +257,7 @@ class SyntaxAnalyze(object):
                     syn_nodeStack.append(parentNode)
                     symbol_stack.append(tokens[-1]['id'])
                     tokens = tokens[:-1]
-                    if self.dubeg:
+                    if self.debug:
                         print(symbol_stack)
                 
             else:
@@ -342,6 +344,7 @@ class SemAnalyze(object):
         self.offset = 0
         self.symbole_width = {'int':4,'double':8,'char':4}
         self.compare_operator = ['<','>']
+        self.error_flag = False
     def gen(self,order,op,value1,value2,value3):
         newFour = Four(order,op,value1,value2,value3)
         return newFour
@@ -350,7 +353,7 @@ class SemAnalyze(object):
         table = PrettyTable(['id','type','width','offset','array_dim'])
         for symbole in self.symbole_table:
             table.add_row([symbole.identifier,symbole.type,symbole.width,str(symbole.offset),str(symbole.dim)])
-        print(table)
+        return table
     def isSymboleExist(self,identifier):
         for symbole in self.symbole_table:
             if symbole.identifier == identifier:
@@ -415,6 +418,7 @@ class SemAnalyze(object):
             symbole=self.isSymboleExist(nodes[1].value)
             if not symbole:
                 print('id:'+nodes[1].value+' not define!')
+                self.error_flag = True
                 ##变量是否出错
                 return
             else:
@@ -507,6 +511,7 @@ class SemAnalyze(object):
             symbole=self.isSymboleExist(nodes[1].value)
             if not symbole:
                 print('id:'+nodes[1].value+' not define!')
+                self.error_flag = True
                 ##变量是否出错
                 return
             else:
@@ -526,6 +531,7 @@ class SemAnalyze(object):
             symbole = self.isSymboleExist(nodes[1].value)
             if not symbole:
                 print('id:'+nodes[1].value+' not define!')
+                self.error_flag = True
                 ##变量是否出错
                 return
             else:
@@ -545,6 +551,7 @@ class SemAnalyze(object):
             symbole=self.isSymboleExist(nodes[1].value)
             if not symbole:
                 print('id:'+nodes[1].value+' not define!')
+                self.error_flag = True
                 ##变量是否出错
                 return
             else:
@@ -559,6 +566,7 @@ class SemAnalyze(object):
                     outOfRangeFlag = isArrayOut(symbole.dim,nodes[1].dim)
                     if not outOfRangeFlag:
                         print('array %s out of range!' %(symbole.identifier))
+                        self.error_flag = True
                         return
                     else:
                         arrayOffset = 1
@@ -655,7 +663,6 @@ class SemAnalyze(object):
         if sem_str == 'external_declaration:statement':
             parentNode.four_list = nodes[1].four_list
             return
-        
         if sem_str == 'start:external_declaration start':
             if  nodes[2].four_list:
                 if not nodes[1].four_list:
@@ -665,9 +672,6 @@ class SemAnalyze(object):
             #更新四元式表
             self.fours = nodes[1].four_list
             return
-            
-
-
 def mergeFourList(firstFourlist,SendFourlist):
     length = len(firstFourlist.four_list)
     for four in SendFourlist.four_list:
@@ -720,15 +724,14 @@ def isArrayOut(identifyDim,nowDim):
            
 
 if __name__=="__main__":
-    syn = SyntaxAnalyze()
-    syn.dubeg = False
+    syn = SyntaxAnalyze_with_sem()
+    syn.debug = False
     syn.read_syntax_grammar('sem_grammer.txt')
     syn.get_terminate_noterminate()
     syn.init_first_set()
     syn.create_lr_dfa()
     syn.save_Lr_anylyze_table('lr_table.csv')
     syn.printFirst_set()
-
     #print(syn.first_set_table.get_string())
     #with open('first.txt','w') as first_handle:
         #first_handle.write(syn.first_set_table.get_string())
