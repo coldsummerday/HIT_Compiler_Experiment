@@ -2,7 +2,6 @@ start1:start
 start:external_declaration start
 start:$
 external_declaration:statement
-external_declaration:assignment
 #声明语句
 type:char
 type:int
@@ -10,7 +9,7 @@ type:double
 array_statement:[ number ] array_statement
 array_statement:$
 type_statement:type array_statement
-statement:type_statement identifier ;
+declaration:type_statement identifier ;
 #赋值语句
 primary_expression:identifier
 primary_expression:number
@@ -35,4 +34,16 @@ assignment_init:= assignment_value
 assignment_value:expression
 assignment_value:identifier assignment_array
 expression:constant_expression
-external_declaration:statement
+#
+statement:declaration
+statement:selection_statement
+statement:assignment
+statement:iteration_statement
+statement:compound_statement
+statement_list:statement statement_list
+statement_list:$
+#while do 语句
+iteration_statement:while ( expression ) do statement
+compound_statement:{ statement_list }
+#if  else 语句
+selection_statement:if ( expression ) statement else statement

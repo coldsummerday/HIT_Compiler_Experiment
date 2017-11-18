@@ -245,7 +245,7 @@ class SyntaxAnalyze(object):
                     parentNode = syntree_Node(tokens[-1]['id'],tokens[-1]['token'],new_line_num)
                     ##在语法解析的基础上做语义分析,规约生成节点的时候做出相应的语义动作
                     sem_queue = [parentNode] + tempQueue
-                    self.sem_class.sem_action(sem_queue)
+                    #self.sem_class.sem_action(sem_queue)
                     self.syntree.append(parentNode)
                     while(tempQueue):
                         node = tempQueue.pop(0)
@@ -400,7 +400,7 @@ class SemAnalyze(object):
                 parentNode.changeNodeType(nodes[1].type)
                 parentNode.changeNodeWidth(nodes[1].width)
                 return
-        if sem_str =='statement:type_statement identifier ;':
+        if sem_str =='declaration:type_statement identifier ;':
             newsymbole = Symbole(nodes[2].value,nodes[1].type,nodes[1].width,self.offset)
             if len(nodes[1].dim)!=0:
                 newsymbole.dim = nodes[1].dim
@@ -613,7 +613,7 @@ def isArrayOut(identifyDim,nowDim):
 
 if __name__=="__main__":
     syn = SyntaxAnalyze()
-    syn.dubeg = False
+    syn.dubeg = True
     syn.read_syntax_grammar('sem_grammer.txt')
     syn.get_terminate_noterminate()
     syn.init_first_set()
@@ -625,9 +625,9 @@ if __name__=="__main__":
     #with open('first.txt','w') as first_handle:
         #first_handle.write(syn.first_set_table.get_string())
     syn.read_and_analyze('token_table.txt')
-    syn.sem_class.printSymbole_table()
+    #syn.sem_class.printSymbole_table()
     #syn.printSyn_tree()
 
-    print(syn.sem_class.fours)
+    #print(syn.sem_class.fours)
 
                 
