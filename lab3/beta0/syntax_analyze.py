@@ -1,9 +1,10 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-from nfa_and_dfa import DFA,LRDFANode,syntree_Node,Symbole,Four,TempVariable
+from nfa_and_dfa import *
 from prettytable import PrettyTable
 import csv
+import copy
 class SyntaxAnalyze(object):
 
     def __init__(self):
@@ -245,7 +246,7 @@ class SyntaxAnalyze(object):
                     parentNode = syntree_Node(tokens[-1]['id'],tokens[-1]['token'],new_line_num)
                     ##在语法解析的基础上做语义分析,规约生成节点的时候做出相应的语义动作
                     sem_queue = [parentNode] + tempQueue
-                    #self.sem_class.sem_action(sem_queue)
+                    self.sem_class.sem_action(sem_queue)
                     self.syntree.append(parentNode)
                     while(tempQueue):
                         node = tempQueue.pop(0)
@@ -340,9 +341,9 @@ class SemAnalyze(object):
         self.order = 0
         self.offset = 0
         self.symbole_width = {'int':4,'double':8,'char':4}
+        self.compare_operator = ['<','>']
     def gen(self,order,op,value1,value2,value3):
         newFour = Four(order,op,value1,value2,value3)
-        self.fours.append(newFour)
         return newFour
 
     def printSymbole_table(self):
@@ -451,12 +452,22 @@ class SemAnalyze(object):
 
         ##所有算式算子集结完毕,等待生成四元式
         if sem_str == 'constant_expression:primary_expression arithmetic_expression':
+
+            #比较四元式的情况,用算式类 把所有的算子保存到List 等待if 或者while语句解决
+            if nodes[2].typeflag and nodes[2].arithmetic_list[0].op in self.compare_operator:
+                parentNode.changeNodeWidth(nodes[1].width)
+                parentNode.addArithmetic('first',nodes[1].value,nodes[1].width)
+                parentNode.mergeArithmetic(nodes[2].arithmetic_list)
+                parentNode.changeNodeType('compareexpression')
+                return
             if not nodes[2].typeflag:
                 parentNode.changeNodeType('expression')
                 parentNode.value = nodes[1].value
                 parentNode.width = nodes[1].width
                 return
             parentNode.changeNodeType('expression')
+            ##保存代码段
+            parentNode.four_list = Four_list()
             node1_width = nodes[1].width
             for Arithmetic in nodes[2].arithmetic_list:
                 max_width = max(node1_width,Arithmetic.width)
@@ -467,17 +478,28 @@ class SemAnalyze(object):
                 tempT = TempVariable('T'+str(self.offset),self.offset,max_width)
                 self.symbole_table.append(Symbole(tempT.id,'temp',tempT.width,tempT.offset))
                 self.offset += max_width
-                self.gen(self.order,arithmetic.op,lastValue,arithmetic.value,tempT.id)
+                newfour = self.gen(self.order,arithmetic.op,lastValue,arithmetic.value,tempT.id)
                 self.order += 1
+                parentNode.four_list.addfour(copy.deepcopy(newfour))
                 lastValue = tempT.id
             parentNode.value = lastValue
             parentNode.changeNodeWidth(max_width)
             return
         if sem_str == 'expression:constant_expression':
-            parentNode.changeNodeType('expression')
-            parentNode.value = nodes[1].value
-            parentNode.changeNodeWidth(nodes[1].width)
+            if nodes[1].typeflag and nodes[1].type == 'compareexpression':
+                parentNode.changeNodeType('compareexpression')
+                parentNode.value = nodes[1].value
+                parentNode.changeNodeWidth(nodes[1].width)
+                parentNode.arithmetic_list = nodes[1].arithmetic_list
+            else:
+                if nodes[1].four_list:
+                    parentNode.four_list = nodes[1].four_list
+                parentNode.changeNodeType('expression')
+                parentNode.value = nodes[1].value
+                parentNode.changeNodeWidth(nodes[1].width)
         if sem_str=='assignment_value:expression':
+            if nodes[1].four_list:
+                parentNode.four_list = nodes[1].four_list
             parentNode.changeNodeType('expression')
             parentNode.value = nodes[1].value
             parentNode.changeNodeWidth(nodes[1].width)
@@ -493,6 +515,8 @@ class SemAnalyze(object):
                 parentNode.changeNodeWidth(symbole.width)
                 return
         if sem_str=='assignment_init:= assignment_value':
+            if nodes[2].four_list:
+                parentNode.four_list = nodes[2].four_list
             ##addAri方法会改变Node的属性
             parentNode.addArithmetic('=',nodes[2].value,nodes[2].width)
             #改成正确的属性
@@ -546,6 +570,10 @@ class SemAnalyze(object):
                 parentNode.value = symbole.identifier
                 parentNode.changeNodeType(symbole.type)
                 parentNode.changeNodeWidth(symbole.width)
+                if nodes[2].four_list:
+                    parentNode.four_list = nodes[2].four_list
+                else:
+                    parentNode.four_list = Four_list()
                 if nodes[2].type == 'variable_assignment':
                 ##简单变量赋值
                     arithmetic = nodes[2].arithmetic_list.pop()
@@ -554,23 +582,103 @@ class SemAnalyze(object):
                     self.offset += symbole.width
                     if symbole_each_width < arithmetic.width:
                         ##暂时先赋值默认Number只有int 跟 double不考虑
-                        self.gen(self.order,'int()',arithmetic.value,'_',tempT.id)
-                        self.order += 1
-                        self.gen(self.order,'=',tempT.id,'_',assignment_id)
-                        self.order+=1
+                        newfour=self.gen(self.order,'int()',arithmetic.value,'_',tempT.id)
+                        parentNode.four_list.addfour(copy.deepcopy(newfour))
+                        newfour = self.gen(self.order,'=',tempT.id,'_',assignment_id)
+                        parentNode.four_list.addfour(copy.deepcopy(newfour))
                     elif symbole_each_width > arithmetic.width:
-                        self.gen(self.order,'double()',arithmetic.value,'_',tempT.id)
-                        self.order += 1
-                        self.gen(self.order,'=',tempT.id,'_',assignment_id)
-                        self.order+=1
+                        newfour = self.gen(self.order,'double()',arithmetic.value,'_',tempT.id)
+                        parentNode.four_list.addfour(copy.deepcopy(newfour))
+                        newfour = self.gen(self.order,'=',tempT.id,'_',assignment_id)
+                        parentNode.four_list.addfour(copy.deepcopy(newfour))
                     else:
-                        self.gen(self.order,'=',arithmetic.value,'_',assignment_id)
-                        self.order += 1
+                        newfour = self.gen(self.order,'=',arithmetic.value,'_',assignment_id)
+                        parentNode.four_list.addfour(copy.deepcopy(newfour))
+
+        if sem_str[0:10] == 'statement:':
+            if nodes[1].four_list:
+                parentNode.four_list = nodes[1].four_list
+            parentNode.changeNodeType('statement')
+            
+        if sem_str=='selection_statement:if ( expression ) statement else statement':
+            parentNode.four_list = Four_list()
+            first_value = nodes[3].arithmetic_list.pop(0).value
+            arithmetic = nodes[3].arithmetic_list.pop()
+            true_jump_four = Four(self.order,'j'+arithmetic.op,first_value,arithmetic.value,0)
+            false_jump_four = Four(self.order,'j','_','_',1)
+            parentNode.four_list.addfour(true_jump_four)
+            parentNode.four_list.addfour(false_jump_four)
+            parentNode.four_list.jump_list.extend([true_jump_four,false_jump_four])
+            true_jump_four.value3 = 2
+            TrueStatementlength = len(nodes[5].four_list.four_list)
+            false_jump_four.value3 = 2 + TrueStatementlength +1
+            for four in nodes[5].four_list.four_list:
+                parentNode.four_list.addfour(four)
+            add_jump_four_offset(nodes[5].four_list.jump_list,2)
+            parentNode.four_list.jump_list.extend(nodes[5].four_list.jump_list)
+            ##表达式为真的时候运行完毕跳转
+            true_statment = Four(1,'j','_','_',1)
+            parentNode.four_list.addfour(true_statment)
+            parentNode.four_list.jump_list.append(true_statment)
+            FalseStatementLength = len(nodes[7].four_list.four_list)
+            beforeLength = len(parentNode.four_list.four_list)
+            for four in nodes[7].four_list.four_list:
+                parentNode.four_list.addfour(four)
+            add_jump_four_offset(nodes[7].four_list.jump_list,beforeLength)
+            parentNode.four_list.jump_list.extend(nodes[7].four_list.jump_list)
+            true_statment.value3 = parentNode.four_list.offset
+        if sem_str=='statement_list:statement statement_list':
+            if  nodes[2].four_list:
+                nodes[1].four_list=mergeFourList(nodes[1].four_list,nodes[2].four_list)
+            parentNode.four_list = nodes[1].four_list
+            return
+        if sem_str =='compound_statement:{ statement_list }':
+            parentNode.four_list = nodes[2].four_list
+            return
         
-                        
+        if sem_str=='iteration_statement:while ( expression ) do statement':
+            parentNode.four_list = Four_list()
+            first_value = nodes[3].arithmetic_list.pop(0).value
+            arithmetic = nodes[3].arithmetic_list.pop()
+            true_jump_four = Four(self.order,'j'+arithmetic.op,first_value,arithmetic.value,0)
+            false_jump_four = Four(self.order,'j','_','_',1)
+            parentNode.four_list.addfour(true_jump_four)
+            parentNode.four_list.addfour(false_jump_four)
+            statement_jump_four = Four(self.order,'j','_','_',0)
+            parentNode.four_list.jump_list.extend([true_jump_four,false_jump_four,statement_jump_four])
+            true_jump_four.value3 = 2
+            for four in nodes[6].four_list.four_list:
+                parentNode.four_list.addfour(four)
+            parentNode.four_list.addfour(statement_jump_four)
+            false_jump_four.value3 = len(parentNode.four_list.four_list)
+            parentNode.four_list.jump_list.extend(nodes[6].four_list.jump_list)
+        if sem_str == 'external_declaration:statement':
+            parentNode.four_list = nodes[1].four_list
+            return
+        
+        if sem_str == 'start:external_declaration start':
+            if  nodes[2].four_list:
+                if not nodes[1].four_list:
+                    nodes[1].four_list = Four_list()
+                nodes[1].four_list=mergeFourList(nodes[1].four_list,nodes[2].four_list)
+            parentNode.four_list = nodes[1].four_list
+            #更新四元式表
+            self.fours = nodes[1].four_list
+            return
+            
 
 
+def mergeFourList(firstFourlist,SendFourlist):
+    length = len(firstFourlist.four_list)
+    for four in SendFourlist.four_list:
+        firstFourlist.addfour(four)
+    add_jump_four_offset(SendFourlist.jump_list,length)
+    firstFourlist.jump_list.extend(SendFourlist.jump_list)
+    return firstFourlist
 
+def add_jump_four_offset(jump_four_list,offset):
+    for four in jump_four_list:
+        four.value3 += offset
 
 def isArrayOut(identifyDim,nowDim):
     if len(nowDim)==1:
@@ -613,7 +721,7 @@ def isArrayOut(identifyDim,nowDim):
 
 if __name__=="__main__":
     syn = SyntaxAnalyze()
-    syn.dubeg = True
+    syn.dubeg = False
     syn.read_syntax_grammar('sem_grammer.txt')
     syn.get_terminate_noterminate()
     syn.init_first_set()
@@ -628,6 +736,6 @@ if __name__=="__main__":
     #syn.sem_class.printSymbole_table()
     #syn.printSyn_tree()
 
-    #print(syn.sem_class.fours)
+    print(syn.sem_class.fours)
 
                 

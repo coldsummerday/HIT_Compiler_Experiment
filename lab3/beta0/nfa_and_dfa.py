@@ -79,17 +79,17 @@ class syntree_Node(object):
         self.arithmetic = False
         self.arithmetic_list = []
         self.dim = []
+        self.four_list = None
 
     ##改变保存规约算式表达式的时候缺少一个操作值时候两个值的状态
     def addArithmetic(self,op,value,width):
         if self.arithmetic:
-            self.arithmetic_list.append(arithmetic(op,value,width))
+            self.arithmetic_list.append(Arithmetic(op,value,width))
         else:
             self.typeflag = True
             self.arithmetic = True
-            self.type = arithmetic
             self.arithmetic_list = []
-            self.arithmetic_list.append(arithmetic(op,value,width))
+            self.arithmetic_list.append(Arithmetic(op,value,width))
             self.type = 'arithmetic'
     def mergerArrayDimList(self,dim_list):
         self.dim.extend(dim_list)
@@ -129,14 +129,6 @@ class Four(object):
         self.value1 = value1
         self.value2 = value2
         self.value3 = value3
-        self.chains = []
-
-    def addChain(self,four):
-        self.chains.append(four)
-    
-    def backpatch(self,jorder):
-        for four in self.chains:
-            four.value3 = jorder
 
     def __str__(self):
         return '(%d,%s,%s,%s,%s)' %(int(self.order),str(self.op),str(self.value1),str(self.value2),str(self.value3))
@@ -144,7 +136,63 @@ class Four(object):
     def __repr__(self):
         return '(%d,%s,%s,%s,%s)' %(int(self.order),str(self.op),str(self.value1),str(self.value2),str(self.value3))
     
+#存储代码段信息
+class Four_list(object):
+    def __init__(self):
+        self.four_list = []
+        self.tchains = []
+        self.fchains = []
+        self.offset = 0
+        self.jump_list = []
 
+    ##tchain 是要跳转到代码段头的四元式,fchain是跳转到四元式尾的四元式
+    def addfour(self,four,flag = 'n'):
+        four.order = self.offset
+        self.offset+=1
+        self.four_list.append(four)
+        if flag == 't':
+            self.tchains.append(four)
+        elif flag == 'f':
+            self.fchains.append(four)
+    def isTchain(self):
+        if len(self.tchains)>0:
+            return True
+        else:
+            return False
+    def isFchain(self):
+        if len(self.fchains)>0:
+            return True
+        else:
+            return False
+    def backpatch(self,jorder,flag):
+        if flag == 't':
+            aimlist = self.tchains
+        elif flag == 'f':
+            aimlist =self.fchains
+        else:
+            return
+        for four in aimlist:
+            four.value3 = jorder
+    def mergeAddOrder(self,offset):
+        for four in self.four_list:
+            four.order += offset
+        for four in self.jumplist:
+            four.value3 += offset
+
+    def __str__(self):
+        four_str = ''
+        for four in self.four_list:
+            four_str += '%s\n' %(str(four))
+        return four_str 
+
+    def __repr__(self):
+        four_str = ''
+        for four in self.four_list:
+            four_str += '%s\n' %(str(four))
+        return four_str 
+
+    
+            
 class Symbole(object):
     def __init__(self,identifier,type,width,offset):
         self.identifier = identifier
@@ -156,7 +204,7 @@ class Symbole(object):
     def getDepth(self):
         return len(self.dim)
     
-class arithmetic(object):
+class Arithmetic(object):
     def __init__(self,op,value,width):
         self.op = op
         self.value = value
